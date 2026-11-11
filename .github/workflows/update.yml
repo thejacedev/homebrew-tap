@@ -1,0 +1,55 @@
+name: Update cask
+
+# Runs when the Noteriv release workflow pings this repo, once a day as a
+# fallback, or by hand. Installs the new version before committing it.
+on:
+  repository_dispatch:
+    types: [noteriv-release]
+  schedule:
+    - cron: "37 5 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Noteriv version, e.g. 2.4.9. Blank = latest release."
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-cask
+
+jobs:
+  update:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update the cask
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WANT: ${{ github.event.inputs.version || github.event.client_payload.version }}
+        run: bash ./update.sh "$WANT"
+
+      - name: Style, audit and install the new version
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          brew tap thejacedev/tap "$GITHUB_WORKSPACE"
+          brew trust thejacedev/tap
+          brew style --cask thejacedev/tap/noteriv
+          brew audit --cask thejacedev/tap/noteriv
+          brew install --cask thejacedev/tap/noteriv
+          got=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" /Applications/Noteriv.app/Contents/Info.plist)
+          echo "Installed $got"
+          test "$got" = "${{ steps.update.outputs.version }}"
+
+      - name: Commit and push
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/noteriv.rb
+          git commit -m "Update Noteriv to ${{ steps.update.outputs.version }}"
+          git push
