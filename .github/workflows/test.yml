@@ -1,0 +1,28 @@
+name: Test install
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tap this checkout
+        run: |
+          mkdir -p "$(brew --repository)/Library/Taps/thejacedev"
+          ln -s "$GITHUB_WORKSPACE" "$(brew --repository)/Library/Taps/thejacedev/homebrew-tap"
+      - name: Style and audit
+        run: |
+          brew style --cask thejacedev/tap/noteriv
+          brew audit --cask thejacedev/tap/noteriv
+      - name: Install
+        run: |
+          brew install --cask thejacedev/tap/noteriv
+          test -d /Applications/Noteriv.app
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" /Applications/Noteriv.app/Contents/Info.plist
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" /Applications/Noteriv.app/Contents/Info.plist
