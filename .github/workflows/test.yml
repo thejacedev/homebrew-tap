@@ -14,8 +14,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Tap this checkout
         run: |
-          mkdir -p "$(brew --repository)/Library/Taps/thejacedev"
-          ln -s "$GITHUB_WORKSPACE" "$(brew --repository)/Library/Taps/thejacedev/homebrew-tap"
+          brew tap thejacedev/tap "$GITHUB_WORKSPACE"
+          brew trust thejacedev/tap
       - name: Style and audit
         run: |
           brew style --cask thejacedev/tap/noteriv
@@ -26,3 +26,12 @@ jobs:
           test -d /Applications/Noteriv.app
           /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" /Applications/Noteriv.app/Contents/Info.plist
           /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" /Applications/Noteriv.app/Contents/Info.plist
+  # What a new user sees with the one-line command from the README.
+  fresh-user:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: One-line install without trusting the tap first
+        run: |
+          brew --version
+          brew install --cask thejacedev/tap/noteriv < /dev/null && test -d /Applications/Noteriv.app && echo "ONE-LINE INSTALL WORKED"
