@@ -13,6 +13,8 @@ cask "noteriv" do
     strategy :github_latest
   end
 
+  depends_on :macos
+
   app "Noteriv.app"
 
   zap trash: [
