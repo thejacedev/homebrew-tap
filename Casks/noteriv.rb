@@ -1,6 +1,6 @@
 cask "noteriv" do
-  version "2.4.11"
-  sha256 "7199484ea4fd5b98cfd49062643c5a887181d1776fa5a8c0fa42a57c025b95de"
+  version "2.4.12"
+  sha256 "8b0880705b832f8f00ca574583a2c98b89cdd3ed59198caa08dd59cc9221350b"
 
   url "https://github.com/thejacedev/Noteriv/releases/download/v#{version}/Noteriv_#{version}_universal.dmg"
   name "Noteriv"
